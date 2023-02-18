@@ -37,33 +37,34 @@ This list represents the Calories of the food carried by five Elves:
 
 In case the Elves get hungry and need extra snacks, they need to know which Elf to ask: they'd like to know how many Calories are being carried by the Elf carrying the most Calories. In the example above, this is 24000 (carried by the fourth Elf).
 
-Find the Elf carrying the most Calories. How many total Calories is that Elf carrying? */
+Find the Elf carrying the most Calories. How many total Calories is that Elf carrying? 
+--- Part Two ---
 
-import { createReadStream } from "node:fs";
-import { createInterface } from "node:readline";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+By the time you calculate the answer to the Elves' question, they've already realized that the Elf carrying the most Calories of food might eventually run out of snacks.
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+To avoid this unacceptable situation, the Elves would instead like to know the total Calories carried by the top three Elves carrying the most Calories. That way, even if one of those Elves runs out of snacks, they still have two backups.
 
-const fileStream = createReadStream(join(__dirname, "01.txt"));
+In the example above, the top three Elves are the fourth Elf (with 24000 Calories), then the third Elf (with 11000 Calories), then the fifth Elf (with 10000 Calories). The sum of the Calories carried by these three elves is 45000.
 
-const rl = createInterface({
-  input: fileStream,
-  crlfDelay: Infinity,
-});
+Find the top three Elves carrying the most Calories. How many Calories are those Elves carrying in total? */
 
-let maxCalories = 0;
+import { readLines } from "./readLines.mjs";
+
+const calories: number[] = [];
 let currentCalories = 0;
 
-for await (const line of rl) {
+for await (const line of readLines("01.txt")) {
   if (line.trim() === "") {
-    maxCalories = Math.max(maxCalories, currentCalories);
+    calories.push(currentCalories);
     currentCalories = 0;
   } else {
     currentCalories += parseInt(line, 10);
   }
 }
 
-console.log(maxCalories);
+calories.sort((a, b) => b - a);
+
+console.log(`Max calories: ${calories[0]}`);
+console.log(
+  `Top 3 calories sum: ${calories.slice(0, 3).reduce((a, b) => a + b)}`
+);
