@@ -1,15 +1,11 @@
 import { createReadStream } from "node:fs";
-import { dirname, join } from "node:path";
 import { createInterface } from "node:readline";
-import { fileURLToPath } from "node:url";
+import { buildPath } from "./buildPath.mjs";
 
 export const readLines = async function* (
   filename: string
 ): AsyncGenerator<string, boolean, void> {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
-
-  const fileStream = createReadStream(join(__dirname, filename));
+  const fileStream = createReadStream(buildPath(filename));
 
   const rl = createInterface({
     input: fileStream,

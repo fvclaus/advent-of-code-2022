@@ -31,14 +31,14 @@ What would your total score be if everything goes exactly according to your stra
 
 import { readLines } from "./readLines.mjs";
 
-interface CircularBufferItem<T> {
+interface CircularFixedListItem<T> {
   current: T;
   prev: T;
   next: T;
 }
 
-class CircularBuffer<T extends { id: unknown }> {
-  private buffer: CircularBufferItem<T>[] = [];
+class CircularFixedList<T extends { id: unknown }> {
+  private buffer: CircularFixedListItem<T>[] = [];
   constructor(items: T[]) {
     items.forEach((item, i) => {
       const next = items[(i + 1) % items.length];
@@ -57,7 +57,7 @@ class CircularBuffer<T extends { id: unknown }> {
     });
   }
 
-  getItem(predicate: (item: T) => boolean): CircularBufferItem<T> {
+  getItem(predicate: (item: T) => boolean): CircularFixedListItem<T> {
     const item = this.buffer.find((item) => predicate(item.current));
     if (item == null) {
       throw new Error(`Could not find item ${predicate}`);
@@ -72,7 +72,7 @@ type Shape = {
   symbols: string[];
 };
 
-const gameRules = new CircularBuffer<Shape>([
+const gameRules = new CircularFixedList<Shape>([
   {
     id: "SCISSOR",
     score: 3,
@@ -97,7 +97,7 @@ for await (const line of readLines("02.txt")) {
     .split(" ")
     .map((symbol) =>
       gameRules.getItem((rule) => rule.symbols.includes(symbol))
-    ) as [CircularBufferItem<Shape>, CircularBufferItem<Shape>];
+    ) as [CircularFixedListItem<Shape>, CircularFixedListItem<Shape>];
 
   totalScorePart1 += ownRule.current.score;
 
