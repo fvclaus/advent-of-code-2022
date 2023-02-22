@@ -33,9 +33,6 @@ In the above example, the priority of the item type that appears in both compart
 
 Find the item type that appears in both compartments of each rucksack. What is the sum of the priorities of those item types? */
 
-import { readFileSync } from "fs";
-import { buildPath } from "./buildPath.mjs";
-
 const CHAR_CODE_A = "A".charCodeAt(0);
 const CHAR_CODE_a = "a".charCodeAt(0);
 
@@ -68,11 +65,9 @@ function calculateRucksackPriority(contents: string): number {
 }
 
 const firstPartSum = R.pipe(
-  R.split("\n"),
-  R.filter(R.complement(R.isEmpty)),
   R.map(calculateRucksackPriority),
   R.sum
-)(readFileSync(buildPath("03.txt")).toString());
+)(readLines("03.txt"));
 
 console.log(firstPartSum);
 
@@ -104,6 +99,7 @@ Priorities for these items must still be found to organize the sticker attachmen
 
 Find the item type that corresponds to the badges of each three-Elf group. What is the sum of the priorities of those item types? */
 import * as R from "ramda";
+import { readLines } from "./readLines.mjs";
 
 const ALL_VALID_ITEMS: string[] = R.chain(
   (char) => [char, char.toUpperCase()],
@@ -155,13 +151,11 @@ const calculateGroupPriority = (group: [string, string, string]): number => {
 };
 
 const secondPartSum = R.pipe(
-  R.split("\n"),
-  R.filter(R.complement(R.isEmpty)),
   R.splitEvery(3),
   R.map((group: string[]) =>
     calculateGroupPriority(group as [string, string, string])
   ),
   R.sum
-)(readFileSync(buildPath("03.txt")).toString());
+)(readLines("03.txt"));
 
 console.log(secondPartSum);

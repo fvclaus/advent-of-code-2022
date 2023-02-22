@@ -1,8 +1,8 @@
-import { createReadStream } from "node:fs";
+import { createReadStream, readFileSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { buildPath } from "./buildPath.mjs";
 
-export const readLines = async function* (
+export const iterateLines = async function* (
   filename: string
 ): AsyncGenerator<string, boolean, void> {
   const fileStream = createReadStream(buildPath(filename));
@@ -12,7 +12,15 @@ export const readLines = async function* (
     crlfDelay: Infinity,
   });
   for await (const line of rl) {
-    yield line;
+    if (line.trim() !== "") {
+      yield line;
+    }
   }
   return true;
+};
+
+export const readLines = (filename: string): string[] => {
+  const content = readFileSync(buildPath(filename)).toString();
+  const lines = content.split("\n");
+  return lines.filter((line) => line.trim() !== "");
 };

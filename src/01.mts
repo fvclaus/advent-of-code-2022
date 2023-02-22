@@ -48,12 +48,12 @@ In the example above, the top three Elves are the fourth Elf (with 24000 Calorie
 
 Find the top three Elves carrying the most Calories. How many Calories are those Elves carrying in total? */
 
-import { readLines } from "./readLines.mjs";
+import { iterateLines } from "./readLines.mjs";
 
 const calories: number[] = [];
 let currentCalories = 0;
 
-for await (const line of readLines("01.txt")) {
+for await (const line of iterateLines("01.txt")) {
   if (line.trim() === "") {
     calories.push(currentCalories);
     currentCalories = 0;

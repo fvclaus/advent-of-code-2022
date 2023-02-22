@@ -29,7 +29,7 @@ In this example, if you were to follow the strategy guide, you would get a total
 What would your total score be if everything goes exactly according to your strategy guide?
  */
 
-import { readLines } from "./readLines.mjs";
+import { iterateLines } from "./readLines.mjs";
 
 interface CircularFixedListItem<T> {
   current: T;
@@ -92,7 +92,7 @@ const gameRules = new CircularFixedList<Shape>([
 
 let totalScorePart1 = 0;
 
-for await (const line of readLines("02.txt")) {
+for await (const line of iterateLines("02.txt")) {
   const [opponentRule, ownRule] = line
     .split(" ")
     .map((symbol) =>
@@ -135,7 +135,7 @@ enum Outcome {
 
 let totalScorePart2 = 0;
 
-for await (const line of readLines("02.txt")) {
+for await (const line of iterateLines("02.txt")) {
   const [opponentShapeSymbol, outcome] = line.split(" ") as [string, Outcome];
 
   const opponentRule = gameRules.getItem((shape) =>
