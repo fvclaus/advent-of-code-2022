@@ -13,6 +13,16 @@ export const satisfy =
     }
   };
 
+export const digits: Parser<number> = (str: string) => {
+  const [head, rest] = some(
+    satisfy((input: string) => input.match(/[0-9]/) != null)
+  )(str);
+  if (head == null || rest == null) {
+    return [];
+  }
+  return [parseInt(head, 10), rest];
+};
+
 export const chars =
   (c: string): Parser =>
   (str) =>
@@ -49,15 +59,33 @@ export const some =
     return recurse("", str);
   };
 
-export function seq<R>(
-  parsers: Parser[],
-  reducer: (input: string[]) => R
-): Parser<R> {
+export const whitespace = some(satisfy((input) => input.match(/\s/) != null));
+
+// @ts-ignore
+export function seq<Parser1Type, R>(
+  parser: [Parser<Parser1Type>],
+  reducer: (input: [Parser1Type]) => R
+): Parser<R>;
+
+export function seq<Parser1Type, Parser2Type, R>(
+  parser: [Parser<Parser1Type>, Parser<Parser2Type>],
+  reducer: (input: [Parser1Type, Parser2Type]) => R
+): Parser<R>;
+
+export function seq<Parser1Type, Parser2Type, Parser3Type, R>(
+  parser: [Parser<Parser1Type>, Parser<Parser2Type>, Parser<Parser3Type>],
+  reducer: (input: [Parser1Type, Parser2Type, Parser3Type]) => R
+): Parser<R>;
+
+export function seq(
+  parsers: Parser<unknown>[],
+  reducer: (input: unknown[]) => unknown
+): Parser<unknown> {
   return (str) => {
     const recurse = (
-      remainingParsers: Parser[],
-      [memo, remainingStr]: [string[], string]
-    ): [string[], string] | [] => {
+      remainingParsers: Parser<unknown>[],
+      [memo, remainingStr]: [unknown[], string]
+    ): [unknown[], string] | [] => {
       if (!remainingParsers.length) {
         return [memo, remainingStr];
       }
