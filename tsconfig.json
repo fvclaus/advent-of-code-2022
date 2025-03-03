@@ -1,8 +1,7 @@
 {
-    "extends": "@tsconfig/node18-strictest-esm",
+    "extends": ["@tsconfig/node22/tsconfig.json", "@tsconfig/strictest/tsconfig.json"],
     "compilerOptions": {
         "outDir": "dist",
-        "lib": ["ES2022", "DOM"],
-        "sourceMap": true
+        "sourceMap": true,
     }
 }
