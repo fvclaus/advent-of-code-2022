@@ -3,6 +3,9 @@
         "editor.defaultFormatter": "dbaeumer.vscode-eslint",
         "editor.codeActionsOnSave": [
             "source.fixAll.eslint"
-        ]
+        ],
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
     },
+
 }
