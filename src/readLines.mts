@@ -19,8 +19,27 @@ export const iterateLines = async function* (
   return true;
 };
 
-export const readLines = (filename: string): string[] => {
+export type Options = {
+  trim: boolean;
+};
+
+const DEFAULT_OPTIONS: Options = {
+  trim: true,
+};
+
+export const readLines = (
+  filename: string,
+  options?: Partial<Options>
+): string[] => {
+  const effectiveOptions = {
+    ...DEFAULT_OPTIONS,
+    ...options,
+  };
   const content = readFileSync(buildPath(filename)).toString();
   const lines = content.split("\n");
-  return lines.filter((line) => line.trim() !== "");
+  if (effectiveOptions.trim) {
+    return lines.filter((line) => line.trim() !== "");
+  } else {
+    return lines;
+  }
 };
