@@ -18,6 +18,13 @@
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.mjs"
             ]
+        },
+        {
+            "type": "jdk",
+            "mainClass": "${file}",
+            "name": "Launch java file",
+            "cwd": "${workspaceFolder}/app",
+            "internalConsoleOptions": "openOnSessionStart",
         }
     ]
 }

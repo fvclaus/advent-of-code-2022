@@ -121,7 +121,7 @@ class Graph {
 public class Day12 {
 
     public static void main(String[] args) throws Exception {
-        List<String> lines = Files.readAllLines(Path.of("./12.txt"));
+        List<String> lines = Files.readAllLines(Path.of(Day12.class.getResource("/12.txt").toURI()));
         var graph = new Graph(lines);
         part1(graph);
         part2(graph);
