@@ -39,6 +39,7 @@ Valve JJ has flow rate=21; tunnel leads to valve II""";
                 .collect(Collectors.toMap(Valve::getLabel, v -> v));
 
         part1(labelToValve);
+        part2(labelToValve);
 
     }
 
@@ -187,15 +188,15 @@ Valve JJ has flow rate=21; tunnel leads to valve II""";
     // 
     // Work out the steps to release the most pressure in 30 minutes. What is the most pressure you can release?
     private static void part1(Map<String, Valve> labelToValve) {
-        DecisionTree root = new DecisionTree(30, labelToValve.get("AA"), null);
-        
-        var decisionQueue = new ArrayDeque<DecisionTree>();
-        decisionQueue.add(root);
+        ActorState root = new ActorState(30, labelToValve.get("AA"), null);
 
-        DecisionTree maxPressure = root;
+        var queue = new ArrayDeque<ActorState>();
+        queue.add(root);
 
-        while (!decisionQueue.isEmpty()) {
-            var node = decisionQueue.poll();
+        ActorState maxPressure = root;
+
+        while (!queue.isEmpty()) {
+            var node = queue.poll();
             var valve = node.valve;
             var openedValves = node.openedValves;
             var remainingMinutes = node.remainingMinutes;
@@ -220,39 +221,204 @@ Valve JJ has flow rate=21; tunnel leads to valve II""";
 
             for (Valve nextValveCandidates : valveToDistance.keySet()) {
                 var distanceToValve = valveToDistance.get(nextValveCandidates);
-                DecisionTree newNode = new DecisionTree((remainingMinutes - (distanceToValve + 1)), nextValveCandidates, node);
+                ActorState newNode = new ActorState((remainingMinutes - (distanceToValve + 1)), nextValveCandidates, node);
                 if (newNode.totalPressureRelease > maxPressure.totalPressureRelease) {
                     maxPressure = newNode;
                 }
 
-                decisionQueue.add(newNode);
+                queue.add(newNode);
             }
         }
 
         System.out.println(maxPressure + ": " + maxPressure.totalPressureRelease + ", remainingMinutes" + maxPressure.remainingMinutes);
     }
 
-    private static class DecisionTree {
+    private static Map<Valve, Integer> calculateDistance(Valve valve, Set<Valve> openedValves, int remainingMinutes) {
+        var candidateQueue = new ArrayDeque<Map.Entry<Valve, Integer>>();
+        candidateQueue.add(new AbstractMap.SimpleEntry<>(valve, 0));
+        var visitedValves = new HashSet<Valve>();
+        var valveToDistance = new HashMap<Valve, Integer>();
+        while (!candidateQueue.isEmpty()) {
+            var currentEntry = candidateQueue.poll();
+            var currentValve = currentEntry.getKey();
+            var distance = currentEntry.getValue();
+            if (!openedValves.contains(currentValve) && currentValve.flowRate > 0 && (remainingMinutes - distance) > 0) {
+                valveToDistance.put(currentValve, distance);
+            }
+            visitedValves.add(currentValve);
+            for (Valve neighbor : currentValve.neighbors) {
+                if (!visitedValves.contains(neighbor)) {
+                    candidateQueue.add(new AbstractMap.SimpleEntry<>(neighbor, distance + 1));
+                }
+            }
+        }
+        return valveToDistance;
+    }
+
+    // You're worried that even with an optimal approach, the pressure released won't be enough. What if you got one of the elephants to help you?
+    // 
+    // It would take you 4 minutes to teach an elephant how to open the right valves in the right order, leaving you with only 26 minutes to actually execute your plan. Would having two of you working together be better, even if it means having less time? (Assume that you teach the elephant before opening any valves yourself, giving you both the same full 26 minutes.)
+    // 
+    // In the example above, you could teach the elephant to help you as follows:
+    // 
+    // == Minute 1 ==
+    // No valves are open.
+    // You move to valve II.
+    // The elephant moves to valve DD.
+    // 
+    // == Minute 2 ==
+    // No valves are open.
+    // You move to valve JJ.
+    // The elephant opens valve DD.
+    // 
+    // == Minute 3 ==
+    // Valve DD is open, releasing 20 pressure.
+    // You open valve JJ.
+    // The elephant moves to valve EE.
+    // 
+    // == Minute 4 ==
+    // Valves DD and JJ are open, releasing 41 pressure.
+    // You move to valve II.
+    // The elephant moves to valve FF.
+    // 
+    // == Minute 5 ==
+    // Valves DD and JJ are open, releasing 41 pressure.
+    // You move to valve AA.
+    // The elephant moves to valve GG.
+    // 
+    // == Minute 6 ==
+    // Valves DD and JJ are open, releasing 41 pressure.
+    // You move to valve BB.
+    // The elephant moves to valve HH.
+    // 
+    // == Minute 7 ==
+    // Valves DD and JJ are open, releasing 41 pressure.
+    // You open valve BB.
+    // The elephant opens valve HH.
+    // 
+    // == Minute 8 ==
+    // Valves BB, DD, HH, and JJ are open, releasing 76 pressure.
+    // You move to valve CC.
+    // The elephant moves to valve GG.
+    // 
+    // == Minute 9 ==
+    // Valves BB, DD, HH, and JJ are open, releasing 76 pressure.
+    // You open valve CC.
+    // The elephant moves to valve FF.
+    // 
+    // == Minute 10 ==
+    // Valves BB, CC, DD, HH, and JJ are open, releasing 78 pressure.
+    // The elephant moves to valve EE.
+    // 
+    // == Minute 11 ==
+    // Valves BB, CC, DD, HH, and JJ are open, releasing 78 pressure.
+    // The elephant opens valve EE.
+    // 
+    // (At this point, all valves are open.)
+    // 
+    // == Minute 12 ==
+    // Valves BB, CC, DD, EE, HH, and JJ are open, releasing 81 pressure.
+    // 
+    // ...
+    // 
+    // == Minute 20 ==
+    // Valves BB, CC, DD, EE, HH, and JJ are open, releasing 81 pressure.
+    // 
+    // ...
+    // 
+    // == Minute 26 ==
+    // Valves BB, CC, DD, EE, HH, and JJ are open, releasing 81 pressure.
+    // 
+    // With the elephant helping, after 26 minutes, the best you could do would release a total of 1707 pressure.
+    // 
+    // With you and an elephant working together for 26 minutes, what is the most pressure you could release?
+    private static void part2(Map<String, Valve> labelToValve) {
+        TeamState root = new TeamState(
+                new ActorState(26, labelToValve.get("AA"), null),
+                new ActorState(26, labelToValve.get("AA"), null),
+                null
+        );
+
+        var queue = new ArrayDeque<TeamState>();
+        queue.add(root);
+
+        TeamState maxPressure = root;
+
+        while (!queue.isEmpty()) {
+            var node = queue.poll();
+            if (node.totalPressureRelease > maxPressure.totalPressureRelease) {
+                maxPressure = node;
+            }
+            var valve = node.nextActor.valve;
+            var remainingMinutes = node.nextActor.remainingMinutes;
+            var valveToDistance = calculateDistance(valve, node.openedValves, remainingMinutes);
+
+            for (var nextValve : valveToDistance.keySet()) {
+                var distance = valveToDistance.get(nextValve);
+                var newNode = new ActorState((remainingMinutes - (distance + 1)), nextValve, node.nextActor);
+                TeamState decisionTreePart2 = new TeamState(node.nextActor == node.self ? newNode : node.self, node.nextActor == node.elephant ? newNode : node.elephant, node);
+                if (decisionTreePart2.totalPressureRelease + 500 > maxPressure.totalPressureRelease) {
+                    // Prune trees that lack to far behind
+                    queue.add(decisionTreePart2);
+                }
+            }
+
+        }
+        System.out.println(maxPressure + ": " + maxPressure.totalPressureRelease);
+    }
+
+    private static class TeamState {
+
+        private ActorState nextActor;
+        private int totalPressureRelease = 0;
+        private final ActorState self;
+        private final ActorState elephant;
+        private final Set<Valve> openedValves;
+
+        public TeamState(ActorState self, ActorState elephant, TeamState parent) {
+            this.self = self;
+            this.elephant = elephant;
+
+            this.openedValves = new HashSet<>();
+            this.openedValves.addAll(self.openedValves);
+            this.openedValves.addAll(elephant.openedValves);
+
+            // Find the next actor
+            this.nextActor = this.self.remainingMinutes > this.elephant.remainingMinutes ? this.self : this.elephant;
+
+            this.totalPressureRelease = self.totalPressureRelease + elephant.totalPressureRelease;
+
+        }
+
+        @Override
+        public String toString() {
+            return self.toString() + "\n" + elephant.toString();
+        }
+
+    }
+
+    private static class ActorState {
 
         private final int remainingMinutes;
         private final Valve valve;
         private int totalPressureRelease = 0;
-        private DecisionTree parent;
-        private List<DecisionTree> children = new ArrayList<>();
+        private final ActorState parent;
         private final Set<Valve> openedValves;
 
-        public DecisionTree(int remainingMinutes, Valve valve, DecisionTree parent) {
+        public ActorState(int remainingMinutes, Valve valve, ActorState parent) {
             this.remainingMinutes = remainingMinutes;
             this.valve = valve;
             this.parent = parent;
 
             if (parent != null) {
                 this.openedValves = new HashSet<>(parent.openedValves);
+                if (this.openedValves.contains(valve)) {
+                    throw new IllegalStateException("Cannot not open valve " + valve + " again.");
+                }
                 this.openedValves.add(valve);
                 var pressureRelease = parent.totalPressureRelease;
                 pressureRelease += this.remainingMinutes * valve.flowRate;
                 this.totalPressureRelease = pressureRelease;
-                parent.children.add(this);
             } else {
                 this.openedValves = new HashSet<>();
             }
@@ -261,7 +427,7 @@ Valve JJ has flow rate=21; tunnel leads to valve II""";
 
         @Override
         public String toString() {
-            var parents = new LinkedList<DecisionTree>();
+            var parents = new LinkedList<ActorState>();
             parents.add(this);
             var currentParent = this.parent;
             while (currentParent != null) {
