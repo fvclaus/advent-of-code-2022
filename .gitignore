@@ -1,5 +1,9 @@
 dist/
 node_modules/
+bin/
+.settings/
+.project
+.classpath
 # Ignore Gradle project-specific cache directory
 .gradle
 
